@@ -1,0 +1,156 @@
+<html>
+  <head>
+    <title>Laundry Calculator</title>
+
+    <style>
+      .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        background-color: #333;
+        color: #fff;
+      }
+      .navbar a {
+        color: #fff;
+        text-decoration: none;
+        margin-right: 20px;
+      }
+      
+      .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-image: url(screen2.jpg);
+      }
+
+      h1 {
+        margin-top: 2rem;
+      }
+
+      body {
+        background-image: url(./static/screen5.jpg);
+        background-repeat: no-repeat;
+        background-size: cover;
+      }
+
+      input[type="number"] {
+        width: 50px;
+        height: 30px;
+        margin: 1rem;
+        padding: 0.5rem;
+        text-align: center;
+      }
+
+      input[type="submit"] {
+        background-color: #333;
+        color: #fff;
+        padding: 0.75rem 1.5rem;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+        margin-top: 1rem;
+      }
+
+      input[type="submit"]:hover {
+        background-color: #444;
+      }
+
+      .result {
+        margin-top: 2rem;
+        font-size: 1.25rem;
+      }
+
+      .timer {
+        display: none;
+        align-items: center;
+        font-size: 48px;
+        font-weight: bold;
+      }
+
+      .timer-separator {
+        margin: 30 10px;
+      }
+
+    </style>
+  </head>
+  <body>
+    <header>
+        <div class="navbar">
+            <div>
+                <h1>SMART LAUNDRY</h1>
+              <a href="{{ url_for('home') }}">Home</a>
+              <a href="{{ url_for('calculator') }}">Calculator</a>
+              
+            </div>
+        <div class="container">
+    </header>
+      <form>
+        <label for="shirts">Shirts:</label>
+        <input type="number" id="shirts" name="shirts" value="0">
+        <label for="pants">Pants:</label>
+        <input type="number" id="pants" name="pants" value="0">
+        <label for="socks">Socks:</label>
+        <input type="number" id="socks" name="socks" value="0">
+        <input type="submit" value="Calculate">
+      </form>
+      <div class="result">
+        <p id="output"></p>
+      </div>
+    </div>
+
+    <button id="start-laundry">Start Laundry</button>
+    <div class="timer">
+        <p id="minutes">00</p>
+        <p class="timer-separator">:</p>
+        <p id="seconds">00</p>
+    </div>
+
+
+    <script>
+      const form = document.querySelector("form");
+      const output = document.querySelector("#output");
+
+      form.addEventListener("submit", function(event) {
+        event.preventDefault();
+        const shirts = parseInt(form.shirts.value);
+        const pants = parseInt(form.pants.value);
+        const socks = parseInt(form.socks.value);
+        const total = shirts + pants + socks;
+        let message = "You have " + total + " items in your laundry basket";
+        if (total >= 10) {
+          message += ", it's time to do some laundry!";
+          message += ", Proceed to start timer when you are ready";
+        }
+        output.textContent = message;
+      });
+    </script>
+
+    <script>
+        let startButton = document.querySelector('#start-laundry');
+        let timer = document.querySelector('.timer');
+        let minutes = document.querySelector('#minutes');
+        let seconds = document.querySelector('#seconds');
+
+        startButton.addEventListener('click', () => {
+        // Show the timer
+            timer.style.display = 'flex';
+
+        // Calculate laundry time (e.g. 30 minutes)
+            let laundryTime = 30;
+            let totalSeconds = laundryTime * 60;
+
+            let intervalId = setInterval(() => {
+                totalSeconds--;
+                minutes.innerHTML = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+                seconds.innerHTML = (totalSeconds % 60).toString().padStart(2, '0');
+                if (totalSeconds === 0) {
+                    clearInterval(intervalId);
+                }
+            }, 1000);
+        });
+
+    </script>
+
+  </body>
+</html>
