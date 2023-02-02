@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_mysqldb import MySQL
+from flask_session import Session
 import MySQLdb.cursors
 import re
 import requests
@@ -8,32 +9,26 @@ app = Flask(__name__)
 
 app.secret_key = 'FlaskApp'
 
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'FlaskApp1'
-app.config['MYSQL_DB'] = 'FlaskApp'
+# Configuring a dictionary to store user information
+users_info = {}
 
 mysql = MySQL(app)
 
 @app.route("/")
 @app.route('/login', methods =['GET', 'POST'])
 def login():
-    msg = ''
-    if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
+    if request.method == 'POST':
+        # Get the user information from the form
         username = request.form['username']
         password = request.form['password']
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT * FROM users WHERE username = % s AND password = % s', (username, password, ))
-        account = cursor.fetchone()
-        if account:
-            session['loggedin'] = True
-            session['id'] = account['id']
-            session['username'] = account['username']
-            msg = 'Logged in successfully !'
-            return render_template('index.html', msg = msg)
-        else:msg = 'Incorrect username / password !'
-    return render_template('login.html', msg = msg)
- 
+
+        # Authenticate the user
+        if username in users_info and users_info[username] == password:
+            # Store the user information in the session
+            session['user'] = {'username': username}
+
+            return redirect(url_for('home'))
+    return render_template('login.html')
 @app.route('/logout')
 def logout():
     session.pop('loggedin', None)
@@ -43,29 +38,20 @@ def logout():
  
 @app.route('/register', methods =['GET', 'POST'])
 def register():
-    msg = ''
-    if request.method == 'POST' and 'username' in request.form and 'password' in request.form and 'email' in request.form :
+    if request.method == 'POST':
+        # Get the user information from the form
         username = request.form['username']
         password = request.form['password']
-        email = request.form['email']
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT * FROM users WHERE username = % s', (username, ))
-        account = cursor.fetchone()
-        if account:
-            msg = 'Account already exists !'
-        elif not re.match(r'[^@]+@[^@]+\.[^@]+', email):
-            msg = 'Invalid email address !'
-        elif not re.match(r'[A-Za-z0-9]+', username):
-            msg = 'Username must contain only characters and numbers !'
-        elif not username or not password or not email:
-            msg = 'Please fill out the form !'
-        else:
-            cursor.execute('INSERT INTO users VALUES (NULL, % s, % s, % s)', (username, password, email))
-            mysql.connection.commit()
-            msg = 'You have successfully registered! Please proceed to login.'
-    elif request.method == 'POST':
-        msg = 'Please fill out the form !'
-    return render_template('register.html', msg = msg)
+
+        # Store the user information in the dictionary
+        users_info[username] = password
+
+        # Store the user information in the session
+        session['user'] = {'username': username}
+
+        return redirect(url_for('login'))
+    return render_template('register.html')
+
 
 @app.route("/home")
 def home():
